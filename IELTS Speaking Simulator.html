@@ -1,0 +1,630 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>IELTS Speaking Simulator</title>
+<style>
+/* Layout: one calm column, like an exam desk. Examiner's words on top, the candidate's controls below. */
+:root{
+  --navy:#0e2a47; --teal:#0f8b8d; --teal-soft:#d9eeee; --bg:#f2f6f7; --surface:#ffffff;
+  --ink:#12263a; --muted:#566878; --line:#d3dee3; --warn:#b7791f; --bad:#b83f37; --on-navy:#f2f8fa;
+  --font:"Avenir Next","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --navy:#0a1c30; --teal:#3cc4c0; --teal-soft:#123c46; --bg:#0b1826; --surface:#122538;
+  --ink:#e6eef4; --muted:#9db0bf; --line:#27405a; --warn:#e3b04b; --bad:#f08a80; --on-navy:#e6eef4; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font)}
+[hidden]{display:none!important}
+header{background:var(--navy);color:var(--on-navy);padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px}
+.bar{max-width:880px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{font-weight:700;font-size:1.05rem;letter-spacing:.01em}
+.brand small{display:block;font-weight:500;font-size:.75rem;opacity:.75;letter-spacing:.06em;text-transform:uppercase}
+.nav{display:flex;gap:6px}
+.nav button{background:transparent;border:1px solid rgba(255,255,255,.3);color:var(--on-navy);border-radius:999px;padding:7px 14px;font:inherit;font-size:.85rem;cursor:pointer}
+.nav button[aria-current="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+@media (prefers-color-scheme:dark){.nav button[aria-current="true"]{color:#06222a}}
+main{max-width:880px;margin:0 auto;padding:20px 16px calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.6rem;line-height:1.2;margin:0;text-wrap:balance}
+h2{font-size:1.1rem;margin:0}
+h3{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;font-weight:700}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:.875rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+label{display:flex;flex-direction:column;gap:5px;font-size:.85rem;font-weight:600;min-width:0}
+input[type=text],select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+textarea{min-height:110px;resize:vertical}
+.check{flex-direction:row;align-items:center;gap:8px;font-weight:500}
+.check input{width:20px;height:20px;accent-color:var(--teal)}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px 20px;cursor:pointer;background:var(--teal);color:#fff;min-height:48px}
+@media (prefers-color-scheme:dark){.btn{color:#06222a}}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:8px 14px;min-height:38px;font-size:.875rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.notice{border-left:4px solid var(--warn);background:var(--surface);padding:10px 14px;border-radius:6px;font-size:.9rem}
+.notice.bad{border-color:var(--bad)}
+.meter{height:10px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:1;min-width:120px}
+.meter i{display:block;height:100%;width:0;background:var(--teal);transition:width .1s linear}
+.format{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.format div{border-top:3px solid var(--teal);padding-top:8px}
+.format b{display:block}
+/* test screen */
+.stage{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{background:var(--navy);color:var(--on-navy);border-radius:999px;padding:5px 14px;font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.examiner{font-size:1.35rem;line-height:1.35;font-weight:600;text-wrap:balance;min-height:3.6em}
+.cue{border:2px solid var(--navy);border-radius:6px;padding:16px 18px;background:var(--bg)}
+@media (prefers-color-scheme:dark){.cue{border-color:var(--teal)}}
+.cue ul{margin:8px 0 0;padding-left:20px}
+.status{display:flex;align-items:center;gap:10px;font-weight:700}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--muted);flex:none}
+.status.live .dot{background:var(--bad);animation:pulse 1.2s infinite}
+.status.talk .dot{background:var(--teal)}
+@keyframes pulse{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.status.live .dot{animation:none}.meter i{transition:none}}
+.clock{font:700 2rem/1 var(--mono);font-variant-numeric:tabular-nums}
+.clock.low{color:var(--warn)}
+.track{height:6px;background:var(--line);border-radius:999px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--teal);width:0}
+/* results */
+.overall{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.big{font:800 4rem/1 var(--font);color:var(--teal);font-variant-numeric:tabular-nums}
+.ruler{position:relative;height:44px;margin:4px 8px 0}
+.ruler .axis{position:absolute;left:0;right:0;top:14px;height:4px;background:var(--line);border-radius:2px}
+.ruler span{position:absolute;top:22px;transform:translateX(-50%);font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.ruler b{position:absolute;top:4px;width:22px;height:22px;border-radius:50%;background:var(--teal);border:3px solid var(--surface);transform:translateX(-50%)}
+.crit{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.crit>div{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.crit .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.crit .band{font:800 1.6rem/1 var(--font);color:var(--teal);font-variant-numeric:tabular-nums}
+.crit ul{margin:0;padding-left:18px;font-size:.9rem}
+.next{background:var(--teal-soft);border-radius:8px;padding:8px 10px;font-size:.9rem}
+.stats{display:flex;gap:18px;flex-wrap:wrap;font-size:.9rem}
+.stats b{font-variant-numeric:tabular-nums}
+.ans{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.ans q{quotes:none;font-weight:700}
+.ans audio{width:100%;max-width:420px;height:36px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer}
+tbody tr:hover,tbody tr[aria-selected="true"]{background:var(--teal-soft)}
+footer{max-width:880px;margin:0 auto;padding:0 16px 30px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="brand">IELTS Speaking Simulator<small>ATS English Department</small></div>
+  <div class="nav"><button id="nav-student" aria-current="true">Student</button><button id="nav-teacher">Teacher view</button></div>
+</div></header>
+
+<main>
+<!-- START -->
+<section id="scr-start" style="display:contents">
+  <div class="card">
+    <h1>Sit a speaking test, hear the questions, get your band.</h1>
+    <p class="muted">The examiner asks each question aloud. You answer into the microphone. At the end you see an estimated band for each criterion, advice on what to improve, and a file to send to your teacher.</p>
+    <div class="format">
+      <div><b>Part 1 · Interview</b><span class="small muted">8 short questions about you. About 40 seconds each.</span></div>
+      <div><b>Part 2 · Long turn</b><span class="small muted">1 minute to prepare, then speak for up to 2 minutes.</span></div>
+      <div><b>Part 3 · Discussion</b><span class="small muted">5 deeper questions. Up to 75 seconds each.</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Before you start</h2>
+    <div class="grid">
+      <label for="f-name">Your name<input type="text" id="f-name" autocomplete="name" placeholder="e.g. Ahmed Al Ali"></label>
+      <label for="f-class">Class<input type="text" id="f-class" placeholder="e.g. 11 ADV 2"></label>
+      <label for="f-set">Question set<select id="f-set"></select></label>
+      <label for="f-mode">Test length<select id="f-mode">
+        <option value="123">Full test (about 12 minutes)</option>
+        <option value="1">Part 1 only (about 5 minutes)</option>
+        <option value="2">Part 2 only (about 4 minutes)</option>
+        <option value="3">Part 3 only (about 6 minutes)</option>
+      </select></label>
+    </div>
+    <label class="check" for="f-tts"><input type="checkbox" id="f-tts" checked>Read the questions aloud</label>
+    <label class="check" for="f-show"><input type="checkbox" id="f-show" checked>Show the questions on screen</label>
+    <div class="row">
+      <button class="btn ghost" id="b-mic">Check microphone</button>
+      <div class="meter" aria-hidden="true"><i id="m-start"></i></div>
+    </div>
+    <p class="small muted" id="mic-msg">Tap Check microphone and say a few words. The bar should move.</p>
+    <div id="warns" style="display:contents"></div>
+    <div class="row"><button class="btn" id="b-start">Start the test</button></div>
+  </div>
+</section>
+
+<!-- TEST -->
+<section id="scr-test" hidden style="display:contents">
+  <div class="card">
+    <div class="stage"><span class="pill" id="t-part">Part 1</span><span class="small muted" id="t-count"></span></div>
+    <div class="track" aria-hidden="true"><i id="t-prog"></i></div>
+    <h3 id="t-who">Examiner</h3>
+    <p class="examiner" id="t-q"></p>
+    <div class="cue" id="t-cue" hidden></div>
+    <label for="t-notes" id="t-notes-wrap" hidden>Your notes (only you see these)<textarea id="t-notes" placeholder="Write key words, not full sentences."></textarea></label>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="status" id="t-status"><span class="dot"></span><span id="t-status-text">Get ready</span></div>
+      <div class="clock" id="t-clock">0:00</div>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="m-test"></i></div>
+    <div class="row">
+      <button class="btn" id="b-next" disabled>I have finished my answer</button>
+      <button class="btn ghost" id="b-repeat" disabled>Repeat the question</button>
+      <button class="btn ghost small" id="b-quit" style="margin-left:auto">Quit test</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section id="scr-result" hidden style="display:contents">
+  <div id="report" style="display:contents"></div>
+  <div class="card">
+    <h2>Send it to your teacher</h2>
+    <p class="muted small">This saves one file with your bands, your words and your recordings. Upload it to the assignment your teacher set in Teams.</p>
+    <div class="row"><button class="btn" id="b-save">Save my result file</button><button class="btn ghost" id="b-again">Take another test</button></div>
+    <p class="small muted" id="save-msg"></p>
+  </div>
+</section>
+
+<!-- TEACHER -->
+<section id="scr-teacher" hidden style="display:contents">
+  <div class="card">
+    <h1>Teacher view</h1>
+    <p class="muted">Open the result files your students submitted. Listen to each answer, adjust any band, and export the class as a spreadsheet.</p>
+    <div class="row">
+      <label class="btn" for="f-files" style="display:inline-flex;align-items:center;flex-direction:row">Open result files</label>
+      <input type="file" id="f-files" accept=".json,application/json" multiple hidden>
+      <button class="btn ghost" id="b-csv" disabled>Export class as CSV</button>
+    </div>
+    <p class="small muted" id="t-msg">No files opened yet. Each student's file ends in .json.</p>
+    <div class="tablewrap" id="t-tablewrap" hidden><table>
+      <thead><tr><th>Student</th><th>Class</th><th>Date</th><th>Test</th><th class="n">Words</th><th class="n">FC</th><th class="n">LR</th><th class="n">GRA</th><th class="n">PR</th><th class="n">Overall</th></tr></thead>
+      <tbody id="t-rows"></tbody></table></div>
+  </div>
+  <div class="card" id="t-edit" hidden>
+    <h2 id="t-edit-name">Your bands</h2>
+    <p class="small muted">The app's estimate is filled in. Change any band after listening. Pronunciation is yours to rate when the app could not.</p>
+    <div class="grid">
+      <label for="o-fc">Fluency and coherence<select id="o-fc"></select></label>
+      <label for="o-lr">Lexical resource<select id="o-lr"></select></label>
+      <label for="o-gra">Grammatical range and accuracy<select id="o-gra"></select></label>
+      <label for="o-pr">Pronunciation<select id="o-pr"></select></label>
+    </div>
+    <label for="o-note">Comment for the student<textarea id="o-note" style="min-height:70px"></textarea></label>
+    <p><b>Overall band: <span id="o-overall">–</span></b></p>
+  </div>
+  <div id="t-report" style="display:contents"></div>
+</section>
+</main>
+<footer>Practice tool. Bands are computer estimates from a transcript of what you said and are not official IELTS results. Not affiliated with IELTS, the British Council, IDP or Cambridge.</footer>
+
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;};
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const half=x=>Math.round(x*2)/2;
+const fmt=b=>b==null?'–':(Number.isInteger(b)?b+'.0':String(b));
+const mmss=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+function interp(pts,x){if(x<=pts[0][0])return pts[0][1];for(let i=1;i<pts.length;i++){if(x<=pts[i][0]){const[a,b]=pts[i-1],[c,d]=pts[i];return b+(d-b)*(x-a)/(c-a);}}return pts[pts.length-1][1];}
+
+/* ---------- question bank (original questions in IELTS format) ---------- */
+const SETS=[
+ {name:'Home, study and technology',
+  p1:[{topic:'where you live',qs:['Do you live in a house or an apartment?','What do you like most about the area where you live?','Is there anything you would like to change about your home?','Do you think you will live there for a long time?']},
+      {topic:'your studies',qs:['What subjects are you studying at the moment?','Which subject do you find the most interesting, and why?','Do you prefer to study alone or with other people?','What would you like to study in the future?']}],
+  p2:{card:'Describe a piece of technology that you find useful.',pts:['what it is','when you started using it','what you use it for','and explain why it is useful to you'],follow:'Do your friends use this technology too?'},
+  p3:{topic:'technology and society',qs:['How has technology changed the way young people communicate?','Do you think people depend too much on their phones? Why?','What are the advantages and disadvantages of using technology in schools?','Some people say technology makes us less patient. To what extent do you agree?','How do you think technology will change the way people work in the next twenty years?']}},
+ {name:'Free time, food and a skill you learned',
+  p1:[{topic:'your free time',qs:['What do you usually do in your free time?','Do you prefer to spend your free time indoors or outdoors?','Has the way you spend your free time changed since you were a child?','Is there a hobby you would like to try in the future?']},
+      {topic:'food',qs:['What kind of food do you like to eat?','Who usually cooks in your family?','Do you prefer eating at home or in a restaurant?','Is there a traditional dish from your country that you would recommend to a visitor?']}],
+  p2:{card:'Describe a skill you learned that you are proud of.',pts:['what the skill is','how you learned it','how long it took you','and explain why you are proud of it'],follow:'Would you like to teach this skill to someone else?'},
+  p3:{topic:'learning and skills',qs:['What practical skills should every young person learn before they leave school?','Is it better to learn a skill from a teacher or by yourself? Why?','Why do some people give up when they are learning something new?','Do you think schools focus too much on exams and not enough on skills?','Which skills do you think will be the most important for jobs in the future?']}},
+ {name:'Friends, weather and a memorable journey',
+  p1:[{topic:'friends',qs:['Do you have a large group of friends or a few close friends?','How do you usually keep in touch with your friends?','What do you and your friends like to do together?','What makes someone a good friend, in your opinion?']},
+      {topic:'the weather',qs:['What is the weather like in your country?','Which season do you like best?','Does the weather affect what you do during the day?','Would you like to live in a country with a very different climate?']}],
+  p2:{card:'Describe a journey you remember well.',pts:['where you went','who you travelled with','what happened during the journey','and explain why you remember it so well'],follow:'Would you like to make the same journey again?'},
+  p3:{topic:'travel and tourism',qs:['Why do people enjoy travelling to other countries?','How does tourism benefit a country like the UAE?','What problems can large numbers of tourists cause?','Do you think people learn more from travelling than from reading about a place?','How might the way people travel change in the future?']}},
+ {name:'Daily routine, sport and a person you admire',
+  p1:[{topic:'your daily routine',qs:['What time do you usually get up on a school day?','Which part of the day do you like best?','Is your routine different at the weekend?','Is there anything you would like to change about your daily routine?']},
+      {topic:'sport and exercise',qs:['Do you play any sports?','Did you do more sport when you were younger?','Do you prefer watching sport or taking part in it?','Is there a sport you would like to learn?']}],
+  p2:{card:'Describe a person you admire.',pts:['who this person is','how you know about them','what they have done','and explain why you admire them'],follow:'Do other people you know admire this person as well?'},
+  p3:{topic:'role models and success',qs:['What qualities make someone a good role model for teenagers?','Do famous people have a responsibility to behave well in public?','Is success mostly the result of hard work or of luck?','How has social media changed the kind of people teenagers look up to?','Do you think the idea of success is different for your generation than for your parents\' generation?']}},
+ {name:'Reading, shopping and a place to relax',
+  p1:[{topic:'reading',qs:['Do you enjoy reading?','What kind of things do you usually read?','Do you prefer reading on a screen or on paper?','Did you read a lot when you were a child?']},
+      {topic:'shopping',qs:['Do you like going shopping?','Do you prefer shopping online or in a mall?','What was the last thing you bought for yourself?','Do you think you spend too much money on anything?']}],
+  p2:{card:'Describe a place where you like to relax.',pts:['where the place is','how often you go there','what you do there','and explain why it helps you relax'],follow:'Do you usually go there alone or with other people?'},
+  p3:{topic:'stress and modern life',qs:['What are the main causes of stress for students today?','Why do some people find it difficult to relax?','Do you think life is more stressful now than it was in the past?','What can schools do to help students manage pressure?','Should cities be designed with more quiet and green spaces? Why?']}},
+ {name:'Future plans, the environment and a challenge',
+  p1:[{topic:'your future plans',qs:['What do you plan to do after you finish school?','Is there a job you would really like to have?','Would you like to study or work in another country?','Who do you talk to when you need advice about your future?']},
+      {topic:'the environment',qs:['Do you do anything to protect the environment?','Is recycling common where you live?','Do you prefer to spend time in nature or in the city?','Are people in your country interested in environmental issues?']}],
+  p2:{card:'Describe a challenge you faced and how you dealt with it.',pts:['what the challenge was','when it happened','what you did about it','and explain what you learned from the experience'],follow:'Would you deal with it in the same way today?'},
+  p3:{topic:'challenges and resilience',qs:['Why is it important for young people to face challenges?','Do you think parents today protect their children too much?','What is the best way to help a friend who is going through a difficult time?','Are people more likely to succeed when they work in a team or on their own?','How can failure be useful for a person\'s development?']}}
+];
+const PART_NAME={1:'Part 1 · Interview',2:'Part 2 · Long turn',3:'Part 3 · Discussion'};
+const CAP={1:40,2:120,f:30,3:75};
+
+function buildSteps(set,mode){
+  const st=[];
+  if(mode.includes('1')){
+    set.p1.forEach((g,gi)=>g.qs.forEach((q,qi)=>st.push({type:'q',part:1,q,cap:CAP[1],
+      lead:qi?'':(gi?'Now let\'s talk about '+g.topic+'. ':'In this first part, I\'d like to ask you some questions about yourself. Let\'s talk about '+g.topic+'. ')})));
+  }
+  if(mode.includes('2')){
+    const c=set.p2;
+    st.push({type:'prep',part:2,card:c,secs:60,say:'Now I\'m going to give you a topic, and I\'d like you to talk about it for one to two minutes. Before you talk, you have one minute to think about what you are going to say. You can make some notes if you wish. Here is your topic. '+c.card});
+    st.push({type:'q',part:2,q:c.card,card:c,cap:CAP[2],long:true,lead:'All right. Remember, you have one to two minutes for this. I\'ll tell you when the time is up. Please start speaking now.',leadOnly:true});
+    st.push({type:'q',part:2,q:c.follow,cap:CAP.f,lead:'Thank you. '});
+  }
+  if(mode.includes('3')){
+    set.p3.qs.forEach((q,qi)=>st.push({type:'q',part:3,q,cap:CAP[3],
+      lead:qi?'':(mode.includes('2')?'We\'ve been talking about a topic, and I\'d like to discuss one or two more general questions related to it. Let\'s consider '+set.p3.topic+'. ':'I\'d like to discuss some more general questions. Let\'s consider '+set.p3.topic+'. ')}));
+  }
+  return st;
+}
+
+/* ---------- state ---------- */
+const S={stream:null,an:null,buf:null,rms:0,noise:null,cur:null,answers:[],steps:[],abort:false,tts:true,show:true,result:null,finish:null,runId:0};
+const SRClass=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+/* ---------- microphone and level meter ---------- */
+async function getMic(){
+  if(S.stream)return true;
+  const msg=$('mic-msg');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    msg.textContent='The microphone is not available here. Open this page from its https:// web address in Safari or Chrome, not from a saved file.';msg.className='notice bad';return false;}
+  try{S.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});}
+  catch(e){msg.textContent='The microphone was blocked. Allow microphone access for this page in your browser settings, then tap Check microphone again.';msg.className='notice bad';return false;}
+  try{const AC=window.AudioContext||window.webkitAudioContext;const ctx=new AC();const src=ctx.createMediaStreamSource(S.stream);
+    S.an=ctx.createAnalyser();S.an.fftSize=1024;src.connect(S.an);S.buf=new Uint8Array(S.an.fftSize);S.ctx=ctx;
+    if(ctx.state==='suspended')ctx.resume();setInterval(tick,100);}catch(e){S.an=null;}
+  msg.className='small muted';msg.textContent='Microphone is on. Say a few words and watch the bar move.';
+  return true;
+}
+function tick(){
+  if(!S.an)return;
+  S.an.getByteTimeDomainData(S.buf);let s=0;for(let i=0;i<S.buf.length;i++){const v=(S.buf[i]-128)/128;s+=v*v;}
+  const rms=Math.sqrt(s/S.buf.length);S.rms=rms;
+  S.noise=Math.min(rms,(S.noise==null?rms:S.noise)*1.02+1e-5);
+  const w=Math.min(100,rms*650)+'%';$('m-start').style.width=w;$('m-test').style.width=S.cur?w:'0';
+  const c=S.cur;if(!c)return;
+  const voiced=rms>Math.max(0.012,S.noise*3);
+  if(voiced){if(c.spoken&&c.sil>=1.5){c.pauses++;c.longest=Math.max(c.longest,c.sil);}c.sil=0;c.voiced+=0.1;c.spoken=true;c.last=(performance.now()-c.t0)/1000;}
+  else c.sil+=0.1;
+}
+
+/* ---------- speech to text ---------- */
+const Recog={sr:null,active:false,finals:[],interim:'',confs:[],blocked:false,
+  start(){this.finals=[];this.interim='';this.confs=[];this.active=true;if(!SRClass||this.blocked)return;this._spawn();},
+  _spawn(){
+    let sr;try{sr=new SRClass();}catch(e){return;}
+    sr.lang='en-GB';sr.continuous=true;sr.interimResults=true;sr.maxAlternatives=1;
+    sr.onresult=e=>{let it='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];const t=(r[0].transcript||'').trim();
+      if(r.isFinal){if(t){this.finals.push(t);if(r[0].confidence>0)this.confs.push(r[0].confidence);}}else it+=' '+t;}this.interim=it.trim();};
+    sr.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){this.blocked=true;this.active=false;}};
+    sr.onend=()=>{if(this.interim){this.finals.push(this.interim);this.interim='';}
+      if(this.active&&!this.blocked&&this.sr===sr)setTimeout(()=>{if(this.active)this._spawn();},150);else if(this._done)this._done();};
+    this.sr=sr;try{sr.start();}catch(e){}
+  },
+  stop(){return new Promise(res=>{this.active=false;let done=false;
+    const fin=()=>{if(done)return;done=true;this._done=null;const text=(this.finals.join(' ')+' '+this.interim).replace(/\s+/g,' ').trim();
+      res({text,conf:this.confs.length?sum(this.confs)/this.confs.length:null,n:this.confs.length});};
+    this._done=fin;if(!this.sr){fin();return;}try{this.sr.stop();}catch(e){fin();}setTimeout(fin,1300);});}
+};
+
+/* ---------- examiner voice ---------- */
+function pickVoice(){try{const v=speechSynthesis.getVoices();return v.find(x=>/en[-_]GB/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null;}catch(e){return null;}}
+function speak(text){
+  return new Promise(res=>{let done=false,t;const fin=()=>{if(done)return;done=true;clearTimeout(t);res();};
+    setStatus('talk','Examiner is speaking');
+    const est=Math.min(40000,1200+text.split(/\s+/).length*430);
+    if(!S.tts||!('speechSynthesis'in window)){t=setTimeout(fin,S.show?1200:est);return;}
+    try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-GB';u.rate=0.95;const v=pickVoice();if(v)u.voice=v;
+      u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);t=setTimeout(fin,est+5000);}catch(e){fin();}
+  });
+}
+
+/* ---------- running the test ---------- */
+function setStatus(kind,text){const s=$('t-status');s.className='status '+(kind||'');$('t-status-text').textContent=text;}
+function show(id){['scr-start','scr-test','scr-result','scr-teacher'].forEach(x=>$(x).hidden=x!==id);window.scrollTo(0,0);
+  $('nav-student').setAttribute('aria-current',id!=='scr-teacher');$('nav-teacher').setAttribute('aria-current',id==='scr-teacher');}
+function renderCue(card){const c=$('t-cue');c.textContent='';c.append(el('h3',null,'Candidate task card'),el('p',null,card.card));
+  c.lastChild.style.fontWeight='700';c.append(el('p','small muted','You should say:'));const ul=el('ul');card.pts.forEach(p=>ul.append(el('li',null,p)));c.append(ul);c.hidden=false;}
+function renderStep(st,i){
+  $('t-part').textContent=PART_NAME[st.part];
+  const qs=S.steps.filter(x=>x.type==='q');const n=qs.indexOf(st);
+  $('t-count').textContent=st.type==='prep'?'Preparation time':'Question '+(n+1)+' of '+qs.length;
+  $('t-prog').style.width=(i/S.steps.length*100)+'%';
+  $('t-cue').hidden=true;$('t-notes-wrap').hidden=true;
+  if(st.card){renderCue(st.card);$('t-notes-wrap').hidden=false;$('t-q').textContent=st.type==='prep'?'You have one minute to prepare. Make notes if you wish.':'Speak for one to two minutes.';}
+  else $('t-q').textContent=S.show?st.q:'Listen to the question.';
+  $('b-next').disabled=true;$('b-repeat').disabled=true;$('t-clock').textContent='0:00';$('t-clock').className='clock';
+}
+function countdown(secs,label,onTick){
+  return new Promise(res=>{const t0=performance.now();S.finish=()=>{clearInterval(iv);S.finish=null;res();};
+    const iv=setInterval(()=>{const left=secs-(performance.now()-t0)/1000;$('t-clock').textContent=mmss(left);
+      $('t-clock').className='clock'+(left<=10?' low':'');if(onTick)onTick(left);if(left<=0&&S.finish)S.finish();},200);});
+}
+function startAnswer(st){
+  const c={st,t0:performance.now(),voiced:0,sil:0,pauses:0,longest:0,spoken:false,last:0,chunks:[],rec:null,mime:''};
+  if(window.MediaRecorder&&S.stream){try{
+    const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm'].find(m=>MediaRecorder.isTypeSupported(m));
+    const r=new MediaRecorder(S.stream,mime?{mimeType:mime,audioBitsPerSecond:32000}:{audioBitsPerSecond:32000});
+    r.ondataavailable=e=>{if(e.data&&e.data.size)c.chunks.push(e.data);};r.start();c.rec=r;c.mime=r.mimeType||mime||'audio/webm';}catch(e){c.rec=null;}}
+  Recog.start();S.cur=c;
+}
+function stopRecorder(c){
+  return new Promise(res=>{if(!c.rec||c.rec.state==='inactive'){res(null);return;}let done=false;
+    const fin=()=>{if(done)return;done=true;if(!c.chunks.length){res(null);return;}
+      const blob=new Blob(c.chunks,{type:c.mime.split(';')[0]});const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>res(null);fr.readAsDataURL(blob);};
+    c.rec.onstop=fin;try{c.rec.stop();}catch(e){fin();}setTimeout(fin,3000);});
+}
+async function stopAnswer(){
+  const c=S.cur;S.cur=null;const dur=(performance.now()-c.t0)/1000;
+  const[sr,audio]=await Promise.all([Recog.stop(),stopRecorder(c)]);
+  const words=(sr.text.match(/[A-Za-z]+(?:['’][A-Za-z]+)?/g)||[]).length;
+  return{part:c.st.part,long:!!c.st.long,q:c.st.q,text:sr.text,words,dur:+dur.toFixed(1),
+    voiced:S.an?+c.voiced.toFixed(1):null,span:S.an&&c.spoken?+Math.min(dur,c.last+0.5).toFixed(1):+dur.toFixed(1),
+    pauses:S.an?c.pauses:null,longest:+c.longest.toFixed(1),conf:sr.conf,confN:sr.n,audio};
+}
+async function run(){
+  const id=++S.runId;const alive=()=>id===S.runId&&!S.abort;
+  for(let i=0;i<S.steps.length;i++){
+    const st=S.steps[i];renderStep(st,i);
+    if(st.type==='prep'){await speak(st.say);if(!alive())return;setStatus('','Preparation time');
+      $('b-next').textContent='I am ready to speak';$('b-next').disabled=false;await countdown(st.secs);if(!alive())return;$('b-next').textContent='I have finished my answer';continue;}
+    await speak(st.leadOnly?st.lead:(st.lead||'')+st.q);if(!alive())return;
+    startAnswer(st);setStatus('live','Recording. Speak now.');$('b-next').disabled=false;$('b-repeat').disabled=!!st.long;
+    await countdown(st.cap);
+    $('b-next').disabled=true;$('b-repeat').disabled=true;setStatus('','Saving your answer');
+    const a=await stopAnswer();if(!alive())return;S.answers.push(a);
+  }
+  $('t-prog').style.width='100%';$('t-q').textContent='Thank you. That is the end of the speaking test.';$('t-cue').hidden=true;$('t-notes-wrap').hidden=true;
+  await speak('Thank you. That is the end of the speaking test.');if(!alive())return;
+  finishTest();
+}
+function finishTest(){
+  const set=SETS[S.setIdx];
+  S.result={app:'ielts-speaking-sim',v:1,student:{name:$('f-name').value.trim()||'Unnamed student',cls:$('f-class').value.trim()},
+    date:new Date().toISOString(),set:set.name,mode:S.mode,answers:S.answers};
+  S.result.scores=score(S.result.answers,S.mode).bands;
+  const r=$('report');r.textContent='';renderReport(r,S.result,false);$('save-msg').textContent='';show('scr-result');
+}
+
+/* ---------- scoring ---------- */
+const MARKERS=['however','although','because','for example','for instance','on the other hand','in addition','moreover','furthermore','therefore','as a result','actually','to be honest','in my opinion','i think','i believe','personally','first of all','firstly','secondly','finally','besides','whereas','while','in fact','as well','overall','in general','generally','that\'s why','compared to','in contrast','such as','especially','otherwise','even though','despite','in terms of','when it comes to','so that','unless','instead'];
+const COMMON_LONG=new Set('something anything everything everyone everybody sometimes because different important interesting beautiful together tomorrow yesterday children favourite favorite actually probably especially usually really question questions example teachers students remember business computer computers internet families countries problems themselves yourself birthday football weekends shopping thinking watching studying learning playing working spending anything nothing somebody'.split(' '));
+const SUBS=['because','although','though','while','whereas','unless','since','until','whenever','as long as','even if','so that'];
+const ERRORS=[
+ [/\b(he|she|it) don't\b/g,'Use "doesn\'t" after he, she or it.'],
+ [/\bmore (better|bigger|easier|faster|cheaper|harder|smaller|older|younger|happier|worse)\b/g,'Do not use "more" with an -er adjective: say "better", not "more better".'],
+ [/\b(peoples|childrens|informations|advices|homeworks|furnitures|equipments|knowledges|mens|womens)\b/g,'This noun has no -s plural: people, children, information, advice, homework.'],
+ [/\b(didn't|did not|doesn't|don't) (went|saw|came|took|got|made|did|bought|gave|knew|told|said)\b/g,'After didn\'t or doesn\'t, use the base verb: "didn\'t go", not "didn\'t went".'],
+ [/\b(i am|i'm|we are|they are|you are) agree\b/g,'Say "I agree", not "I am agree".'],
+ [/\bmuch (people|friends|students|things|countries|places|problems|years|times)\b/g,'Use "many" with things you can count: "many people".'],
+ [/\bmany (money|time|information|homework|work|traffic|water)\b/g,'Use "much" or "a lot of" with things you cannot count: "a lot of money".'],
+ [/\bdiscuss about\b/g,'Say "discuss something", without "about".'],
+ [/\bexplain (me|him|her|us|them)\b/g,'Say "explain to me", not "explain me".'],
+ [/\bmarried with\b/g,'Say "married to".'],
+ [/\bdepends? (of|in)\b/g,'Say "depends on".'],
+ [/\bi have \d+ years\b/g,'Say "I am 17 years old", not "I have 17 years".'],
+ [/\bsince (\d+|two|three|four|five|six|seven|eight|nine|ten|many|a few) (years|months|weeks|days)\b/g,'Use "for" with a length of time: "for three years".'],
+ [/\benjoy to \w+/g,'After "enjoy", use -ing: "enjoy playing".'],
+ [/\b(can|must|should|could|will|would|might) to \w+/g,'No "to" after can, must, should or will: "can go".'],
+ [/\bi very like\b/g,'Say "I really like" or "I like it very much".'],
+ [/\blisten(ing|ed)? (music|songs|podcasts)\b/g,'Say "listen to music".'],
+ [/\b(is|are|was) depend\b/g,'Say "it depends".'],
+ [/\bthere is (many|a lot of|some|lots of) \w+s\b/g,'Use "there are" before a plural noun.']
+];
+const THIRD=new Set(['he','she','it']),BASE=new Set('go have do want like need live work say make think play study love help use know get take come give'.split(' ')),AUX=new Set("does did do can will would should could might must may to let lets make makes made help helps and or doesn't didn't don't won't can't".split(' '));
+function mattr(t,w){if(!t.length)return 0;if(t.length<=w)return new Set(t).size/t.length*Math.pow(t.length/w,0.15);
+  let s=0,n=0;for(let i=0;i+w<=t.length;i+=5){s+=new Set(t.slice(i,i+w)).size/w;n++;}return s/n;}
+
+function score(answers,mode){
+  const text=answers.map(a=>a.text||'').join(' . ').toLowerCase().replace(/’/g,"'");
+  const toks=text.match(/[a-z]+(?:'[a-z]+)?/g)||[];const W=toks.length;
+  const T=sum(answers.map(a=>a.span||a.dur||0));const total=sum(answers.map(a=>a.dur||0));
+  const wpm=T>0?W/(T/60):0;
+  const hasLevel=answers.length>0&&answers.every(a=>a.pauses!=null);
+  const pauses=hasLevel?sum(answers.map(a=>a.pauses)):null;const ppm=hasLevel&&T>0?pauses/(T/60):null;
+  const longTurn=answers.find(a=>a.long);const p3=answers.filter(a=>a.part===3);const p1=answers.filter(a=>a.part===1);
+  const avg=arr=>arr.length?sum(arr.map(a=>a.words))/arr.length:null;
+  const markers=MARKERS.filter(m=>new RegExp('\\b'+m.replace(/'/g,"'")+'\\b').test(text));
+  let rep=0;for(let i=1;i<toks.length;i++)if(toks[i]===toks[i-1]&&toks[i].length>1)rep++;
+  const repRate=W?rep/W*100:0;
+  const out={W,wpm:Math.round(wpm),total:Math.round(total),pauses,markers,bands:{},crit:{}};
+  if(W<8){out.empty=true;return out;}
+  const cap=W<30?4:(W<80?5.5:9);
+
+  /* Fluency and coherence */
+  let fc=interp([[30,3],[60,4.5],[80,5.5],[100,6.5],[120,7.5],[145,8]],wpm);const fcBase=fc;const fe=[],ft=[];
+  fe.push('You spoke at about '+Math.round(wpm)+' words per minute. Confident speakers are usually between 110 and 150.');
+  if(ppm!=null){if(ppm>6){fc-=1;}else if(ppm>3.5){fc-=0.5;}fe.push(pauses+' long pause'+(pauses===1?'':'s')+' (over 1.5 seconds) across the test.');if(ppm>3.5)ft.push('Cut the long silences. When you need time, use a filler phrase such as "Let me think about that" and keep talking.');}
+  if(longTurn){const d=longTurn.span||longTurn.dur;if(d<45){fc-=1;}else if(d<75){fc-=0.5;}fe.push('Your Part 2 talk lasted '+mmss(d)+' of the 2 minutes available.');if(d<75)ft.push('Make your Part 2 talk longer. Cover every bullet on the card and add one example or short story for each.');}
+  const a3=avg(p3),a1=avg(p1);
+  if(a3!=null){if(a3<20)fc-=0.5;fe.push('Part 3 answers averaged '+Math.round(a3)+' words.');if(a3<40)ft.push('Extend Part 3 answers: give your opinion, a reason, an example, then a contrasting view.');}
+  if(a1!=null&&a1<12){fc-=0.5;ft.push('Part 1 answers were very short. Aim for two or three full sentences each.');}
+  if(markers.length>=8)fc+=0.5;else if(markers.length<=2){fc-=0.5;ft.push('Link your ideas. Try "for example", "on the other hand", "as a result", "that\'s why".');}
+  fe.push(markers.length?'Linking words you used: '+markers.slice(0,8).join(', ')+'.':'Almost no linking words were heard.');
+  if(repRate>3){fc-=0.5;ft.push('You often repeated a word twice. Slow down slightly and finish the sentence you started.');}
+  if(wpm<90)ft.push('Build speed by recording the same answer three times, each a little faster and with fewer stops.');
+  fc=half(clamp(Math.min(Math.max(fc,fcBase-1.5),cap),2,8));
+
+  /* Lexical resource */
+  const mt=mattr(toks,50);const uniq=[...new Set(toks)];
+  const longW=uniq.filter(w=>w.replace(/'.*/,'').length>=8&&!COMMON_LONG.has(w));const lr0=longW.length/uniq.length;
+  let lr=interp([[0.52,4],[0.60,5],[0.66,6],[0.71,7],[0.77,7.5],[0.82,8]],mt)+interp([[0.03,-0.5],[0.07,0],[0.12,0.5],[0.18,1]],lr0);
+  const freq={};toks.forEach(t=>freq[t]=(freq[t]||0)+1);
+  const over=['good','nice','bad','very','really','thing','things','like','big','important','interesting'].filter(w=>(freq[w]||0)/W>0.012&&freq[w]>=4);
+  const le=['You used '+uniq.length+' different words out of '+W+' in total.'],lt=[];
+  le.push(longW.length?'Less common words heard: '+longW.slice(0,10).join(', ')+'.':'Very few less common words were heard.');
+  if(over.length){le.push('Words you leaned on: '+over.map(w=>w+' ('+freq[w]+')').join(', ')+'.');lt.push('Replace overused words. Instead of "'+over[0]+'", choose a more exact word each time.');}
+  if(lr0<0.07)lt.push('Bring in topic vocabulary. Before each practice, list six precise words for the topic and try to use four.');
+  if(mt<0.66)lt.push('Avoid repeating the words in the question. Paraphrase it in your first sentence.');
+  if(!lt.length)lt.push('Add collocations and idiomatic phrases, for example "play a key role", "a wide range of", "broaden my horizons".');
+  lr=half(clamp(Math.min(lr,cap),2,8));
+
+  /* Grammatical range and accuracy */
+  const F=[];const has=(name,re)=>{if(re.test(text))F.push(name);};
+  has('past tense',/\b(was|were|did|went|had|got|saw|came|took|made|\w{3,}ed)\b/);
+  has('present perfect',/\b(have|has|had|'ve)\s+(\w+ly\s+|never\s+|ever\s+|just\s+|already\s+)?(been|done|gone|seen|made|taken|had|got|known|\w{3,}ed)\b/);
+  has('future forms',/\b(will|won't|going to|gonna)\b|'ll\b/);
+  has('continuous forms',/(\b(am|is|are|was|were)|'m|'re)\s+(\w+ly\s+)?\w{2,}ing\b/);
+  has('passive voice',/\b(is|are|was|were|been|being|be)\s+(\w+ly\s+)?(made|done|taken|given|seen|known|built|held|called|considered|produced|needed|required|provided|affected|created|caused|taught|influenced)\b/);
+  has('conditionals',/\bif\b[^.?!]{0,80}(\b(would|could|will|might)\b|'d\b|'ll\b)|\b(would|could|might)\b[^.?!]{0,60}\bif\b/);
+  if(['would','could','should','might','may','must'].filter(m=>new RegExp('\\b'+m+'\\b').test(text)).length>=3)F.push('a range of modal verbs');
+  has('comparatives',/\b(more|less)\s+\w+\s+than\b|\b\w+er\s+than\b|\bthe\s+(most|best|worst|\w+est)\b|\bas\s+\w+\s+as\b/);
+  has('relative clauses',/\b(which|who|whose|whom)\b|\b(people|person|thing|place|something|someone|one|time|reason)\s+(that|where|when)\b/);
+  const subs=SUBS.filter(s=>new RegExp('\\b'+s+'\\b').test(text));if(subs.length>=2)F.push('complex sentences');if(subs.length>=4)F.push('varied subordination');
+  has('"used to"',/\bused to\b/);
+  has('reported opinions',/\b(think|believe|feel|say|said|know|hope|guess|suppose)\s+(that\s+)?(i|we|they|it|he|she|people|there)\b/);
+  has('verb patterns',/\b(enjoy|like|love|prefer|avoid|keep|start|stop|finish)\s+\w+ing\b|\b(want|need|hope|plan|decide|try|would like)\s+to\s+\w+\b/);
+  const errs=[];ERRORS.forEach(([re,tip])=>{re.lastIndex=0;const m=text.match(re);if(m)errs.push({found:[...new Set(m)].slice(0,3),n:m.length,tip});});
+  let sv=[];for(let i=0;i<toks.length-1;i++)if(THIRD.has(toks[i])&&BASE.has(toks[i+1])&&!(i>0&&AUX.has(toks[i-1])))sv.push(toks[i]+' '+toks[i+1]);
+  if(sv.length)errs.push({found:[...new Set(sv)].slice(0,3),n:sv.length,tip:'Add -s to the verb after he, she or it: "she goes", "he has".'});
+  const errN=sum(errs.map(e=>e.n));const errRate=errN/W*100;
+  let gra=interp([[0,4],[2,4.5],[4,5.5],[6,6],[8,7],[10,7.5],[12,8]],F.length);if(errRate>3)gra-=1;else if(errRate>1.2)gra-=0.5;
+  const ge=[F.length?'Structures heard: '+F.join(', ')+'.':'Only simple present-tense sentences were heard.'],gt=[];
+  errs.slice(0,4).forEach(e=>ge.push('Heard "'+e.found.join('", "')+'". '+e.tip));
+  if(!errs.length)ge.push('No common error patterns were detected. The speech engine tidies some mistakes, so your teacher will check accuracy from the recording.');
+  const want=['conditionals','passive voice','present perfect','relative clauses','complex sentences','comparatives'].filter(x=>!F.includes(x));
+  if(want.length)gt.push('Show more range. You did not use: '+want.slice(0,3).join(', ')+'. Plan one sentence with each before you speak.');
+  if(errs.length)gt.push('Fix the repeated errors listed above first. They cost more marks than rare slips.');
+  if(!gt.length)gt.push('Keep the range and aim for longer error-free stretches, especially in Part 3.');
+  gra=half(clamp(Math.min(gra,cap),2,8));
+
+  /* Pronunciation */
+  const cs=answers.filter(a=>a.conf!=null&&a.confN>0);const cn=sum(cs.map(a=>a.confN));
+  let pr=null;const pe=[],pt=[];
+  if(cn>=4){const c=sum(cs.map(a=>a.conf*a.confN))/cn;pr=half(clamp(Math.min(interp([[0.6,4],[0.75,5],[0.83,6],[0.89,7],[0.94,8]],c),cap),2,8));
+    pe.push('The speech engine was '+Math.round(c*100)+'% confident it understood your words. This is a rough guide to clarity only.');
+    pt.push(c<0.85?'Some words were hard to recognise. Open your mouth more on stressed syllables and finish word endings (-s, -ed, -t).':'Your words were clear. Work next on sentence stress and intonation so key words stand out.');}
+  else{pe.push('This device does not report how clearly each word was heard, so the app cannot rate pronunciation.');pt.push('Your teacher will rate pronunciation from the recording. Listen to your own audio below and note any words that are unclear.');}
+
+  out.bands={fc,lr,gra,pr};out.bands.overall=overall(out.bands);
+  out.crit={fc:{e:fe,t:ft.slice(0,2)},lr:{e:le,t:lt.slice(0,2)},gra:{e:ge,t:gt.slice(0,2)},pr:{e:pe,t:pt}};
+  out.lowWords=cap<9;return out;
+}
+function overall(b){const v=[b.fc,b.lr,b.gra,b.pr].filter(x=>x!=null);if(!v.length)return null;const m=sum(v)/v.length;return Math.floor(m*2+0.5)/2;}
+const CRIT=[['fc','Fluency and coherence'],['lr','Lexical resource'],['gra','Grammatical range and accuracy'],['pr','Pronunciation']];
+function describe(b){if(b==null)return'Not rated by the app';if(b>=8)return'Very good user: fluent, flexible and precise';if(b>=7)return'Good user: speaks at length with some flexibility';if(b>=6)return'Competent user: willing to speak at length, some errors';if(b>=5)return'Modest user: keeps going but with repetition and simple language';if(b>=4)return'Limited user: frequent pauses and basic sentences';return'Extremely limited: short, isolated phrases';}
+
+/* ---------- report (student result and teacher detail share this) ---------- */
+function renderReport(root,data,teacher){
+  const sc=score(data.answers||[],data.mode||'123');const b=data.scores&&!teacher?data.scores:(data._bands||sc.bands);
+  const head=el('div','card');
+  head.append(el('h3',null,teacher?'Student result':'Your result'));
+  head.append(el('h1',null,(data.student&&data.student.name||'Unnamed student')+(data.student&&data.student.cls?' · '+data.student.cls:'')));
+  head.append(el('p','muted small',new Date(data.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'})+' · '+(data.set||'')+' · '+({'123':'Full test','1':'Part 1 only','2':'Part 2 only','3':'Part 3 only'}[data.mode]||'')));
+  if(sc.empty){head.append(el('p','notice bad','No speech was turned into text, so no band can be estimated. The recordings below were still saved. Check that the microphone works and that dictation is switched on for this device, then try again.'));root.append(head);}
+  else{
+    const o=el('div','overall');o.append(el('div','big',fmt(b.overall)));const ot=el('div');ot.append(el('h2',null,'Estimated overall band'),el('p','muted',describe(b.overall)+'.'));
+    if(b.pr==null)ot.append(el('p','small muted','Based on three criteria. Pronunciation is rated by your teacher.'));o.append(ot);head.append(o);
+    const r=el('div','ruler');r.setAttribute('aria-hidden','true');r.append(el('div','axis'));for(let i=0;i<=9;i++){const s=el('span',null,String(i));s.style.left=(i/9*100)+'%';r.append(s);}
+    const mk=el('b');mk.style.left=((b.overall||0)/9*100)+'%';r.append(mk);head.append(r);
+    const st=el('div','stats');[['Words spoken',sc.W],['Speed',sc.wpm+' wpm'],['Time answering',mmss(sc.total)],['Long pauses',sc.pauses==null?'not measured':sc.pauses]].forEach(([k,v])=>{const d=el('div');d.append(el('span','muted',k+' '),el('b',null,String(v)));st.append(d);});head.append(st);
+    if(sc.lowWords)head.append(el('p','notice','You said very little, so the bands are capped. Speak for longer to get a fair estimate.'));
+    if(data._note)head.append(el('p','next','Teacher comment: '+data._note));
+    root.append(head);
+    const cc=el('div','card');cc.append(el('h2',null,'Band by criterion'));const g=el('div','crit');
+    CRIT.forEach(([k,name])=>{const d=el('div');const top=el('div','top');top.append(el('b',null,name),el('span','band',fmt(b[k])));d.append(top,el('p','small muted',describe(b[k])+'.'));
+      const ul=el('ul');sc.crit[k].e.forEach(x=>ul.append(el('li',null,x)));d.append(ul);sc.crit[k].t.forEach(x=>d.append(el('p','next','Next step: '+x)));g.append(d);});
+    cc.append(g);root.append(cc);
+  }
+  const ac=el('div','card');ac.append(el('h2',null,teacher?'Answers and recordings':'What you said'));
+  if(!teacher)ac.append(el('p','small muted','This is what the device heard. Play each recording and compare.'));
+  (data.answers||[]).forEach((a,i)=>{const d=el('div','ans');d.append(el('h3',null,'Part '+a.part+(a.long?' · long turn':'')+' · '+mmss(a.dur)+' · '+(a.words||0)+' words'));
+    d.append(el('q',null,String(a.q||'')));d.append(el('p',a.text?null:'muted',a.text||'Nothing was transcribed for this answer.'));
+    if(typeof a.audio==='string'&&/^data:audio\//.test(a.audio)){const au=document.createElement('audio');au.controls=true;au.preload='none';au.src=a.audio;d.append(au);}
+    ac.append(d);});
+  root.append(ac);
+}
+
+/* ---------- saving ---------- */
+async function saveFile(name,mime,text){
+  const blob=new Blob([text],{type:mime});
+  if(navigator.canShare&&window.matchMedia('(pointer:coarse)').matches){try{const f=new File([blob],name,{type:mime});
+    if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return'shared';}}catch(e){if(e&&e.name==='AbortError')return'cancelled';}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);return'saved';
+}
+const safe=s=>String(s).replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'')||'student';
+
+/* ---------- teacher view ---------- */
+const T={rows:[],sel:-1};
+function bandOptions(sel,val,allowNone){sel.textContent='';if(allowNone){const o=el('option',null,'Not rated');o.value='';sel.append(o);}
+  for(let x=9;x>=1;x-=0.5){const o=el('option',null,fmt(x));o.value=String(x);sel.append(o);}sel.value=val==null?'':String(val);}
+function drawTable(){
+  const tb=$('t-rows');tb.textContent='';$('t-tablewrap').hidden=!T.rows.length;$('b-csv').disabled=!T.rows.length;
+  T.rows.forEach((d,i)=>{const tr=el('tr');tr.tabIndex=0;tr.setAttribute('aria-selected',i===T.sel);const b=d._bands;
+    [[d.student.name],[d.student.cls||''],[new Date(d.date).toLocaleDateString()],[{'123':'Full','1':'Part 1','2':'Part 2','3':'Part 3'}[d.mode]||''],[d._W,'n'],[fmt(b.fc),'n'],[fmt(b.lr),'n'],[fmt(b.gra),'n'],[fmt(b.pr),'n'],[fmt(b.overall),'n']]
+      .forEach(([v,c])=>tr.append(el('td',c||null,String(v))));
+    tr.onclick=()=>pick(i);tr.onkeydown=e=>{if(e.key==='Enter')pick(i);};tb.append(tr);});
+}
+function pick(i){T.sel=i;const d=T.rows[i];drawTable();$('t-edit').hidden=false;$('t-edit-name').textContent='Your bands for '+d.student.name;
+  bandOptions($('o-fc'),d._bands.fc);bandOptions($('o-lr'),d._bands.lr);bandOptions($('o-gra'),d._bands.gra);bandOptions($('o-pr'),d._bands.pr,true);
+  $('o-note').value=d._note||'';$('o-overall').textContent=fmt(d._bands.overall);const r=$('t-report');r.textContent='';renderReport(r,d,true);}
+function edited(){const d=T.rows[T.sel];if(!d)return;const g=id=>$(id).value===''?null:parseFloat($(id).value);
+  d._bands={fc:g('o-fc'),lr:g('o-lr'),gra:g('o-gra'),pr:g('o-pr')};d._bands.overall=overall(d._bands);d._note=$('o-note').value.trim();
+  $('o-overall').textContent=fmt(d._bands.overall);drawTable();}
+['o-fc','o-lr','o-gra','o-pr'].forEach(id=>$(id).addEventListener('change',edited));$('o-note').addEventListener('input',edited);
+$('f-files').addEventListener('change',async e=>{let bad=0;
+  for(const f of e.target.files){try{const d=JSON.parse(await f.text());if(d.app!=='ielts-speaking-sim'||!Array.isArray(d.answers))throw 0;
+    d.student={name:String(d.student&&d.student.name||'Unnamed student'),cls:String(d.student&&d.student.cls||'')};
+    const sc=score(d.answers,d.mode||'123');d._W=sc.W;d._bands=sc.empty?{fc:null,lr:null,gra:null,pr:null,overall:null}:Object.assign({},sc.bands);d._note='';T.rows.push(d);}catch(x){bad++;}}
+  e.target.value='';T.rows.sort((a,b)=>a.student.name.localeCompare(b.student.name));
+  $('t-msg').textContent=T.rows.length+' result'+(T.rows.length===1?'':'s')+' open.'+(bad?' '+bad+' file'+(bad===1?' was':'s were')+' not a result file and '+(bad===1?'was':'were')+' skipped.':'')+' Select a row to listen and adjust.';
+  drawTable();});
+$('b-csv').onclick=()=>{const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const lines=[['Student','Class','Date','Question set','Test','Words','FC','LR','GRA','PR','Overall','Teacher comment'].map(q).join(',')];
+  T.rows.forEach(d=>{const b=d._bands;lines.push([d.student.name,d.student.cls,new Date(d.date).toLocaleDateString(),d.set,d.mode==='123'?'Full':'Part '+d.mode,d._W,b.fc,b.lr,b.gra,b.pr,b.overall,d._note].map(q).join(','));});
+  saveFile('speaking_bands_'+new Date().toISOString().slice(0,10)+'.csv','text/csv','\ufeff'+lines.join('\r\n'));};
+
+/* ---------- wiring ---------- */
+(function init(){
+  const sel=$('f-set');const r=el('option',null,'Surprise me');r.value='-1';sel.append(r);SETS.forEach((s,i)=>{const o=el('option',null,(i+1)+'. '+s.name);o.value=String(i);sel.append(o);});
+  const w=$('warns');
+  if(!SRClass)w.append(el('p','notice','This browser cannot turn speech into text, so it cannot estimate a band. Your recordings will still be saved for your teacher. For a band, use Safari on iPad or Chrome on a computer.'));
+  if(!window.MediaRecorder)w.append(el('p','notice','This browser cannot save audio recordings. You will still get a band from the transcript.'));
+  if('speechSynthesis'in window){try{speechSynthesis.getVoices();}catch(e){}}
+})();
+$('b-mic').onclick=getMic;
+$('b-start').onclick=async()=>{
+  if(!$('f-name').value.trim()){$('f-name').focus();$('mic-msg').textContent='Type your name first so your teacher knows whose result this is.';$('mic-msg').className='notice';return;}
+  if(!await getMic())return;if(S.ctx&&S.ctx.state==='suspended')S.ctx.resume();
+  S.tts=$('f-tts').checked;S.show=$('f-show').checked||!S.tts;S.mode=$('f-mode').value;
+  const v=parseInt($('f-set').value,10);S.setIdx=v<0?Math.floor(Math.random()*SETS.length):v;
+  S.steps=buildSteps(SETS[S.setIdx],S.mode);S.answers=[];S.abort=false;Recog.blocked=false;quitArmed=false;$('b-quit').textContent='Quit test';$('t-notes').value='';
+  show('scr-test');run();
+};
+$('b-next').onclick=()=>{if(S.finish)S.finish();};
+$('b-repeat').onclick=async()=>{const c=S.cur;if(!c)return;$('b-repeat').disabled=true;
+  if(S.tts&&'speechSynthesis'in window){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(c.st.q);u.lang='en-GB';u.rate=0.9;const v=pickVoice();if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}}
+  $('t-q').textContent=c.st.q;};
+let quitArmed=false;
+$('b-quit').onclick=async()=>{if(!quitArmed){quitArmed=true;$('b-quit').textContent='Tap again to quit';setTimeout(()=>{quitArmed=false;$('b-quit').textContent='Quit test';},3000);return;}
+  S.abort=true;S.runId++;try{speechSynthesis.cancel();}catch(e){}const f=S.finish;S.finish=null;if(f)f();if(S.cur)await stopAnswer();show('scr-start');};
+$('b-save').onclick=async()=>{const d=S.result;if(!d)return;$('b-save').disabled=true;
+  const name=safe(d.student.name)+'_speaking_'+d.date.slice(0,10)+'.json';const r=await saveFile(name,'application/json',JSON.stringify(d));$('b-save').disabled=false;
+  $('save-msg').textContent=r==='cancelled'?'Not saved. Tap the button again when you are ready.':'Saved as '+name+'. Upload this file to your teacher\'s assignment.';};
+$('b-again').onclick=()=>show('scr-start');
+$('nav-student').onclick=()=>{if(!$('scr-test').hidden)return;show(S.result?'scr-result':'scr-start');};
+$('nav-teacher').onclick=()=>{if(!$('scr-test').hidden)return;show('scr-teacher');};
+window.__sim={score,S,SETS};
+</script>
+</body>
+</html>
+
+</body></html>
